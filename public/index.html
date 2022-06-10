@@ -24,9 +24,17 @@
     <script defer src="/__/firebase/init.js?useEmulator=false"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto&display=swap" rel="stylesheet">
   </head>
-  <body>
+  <body style="font-family: 'Roboto', sans-serif;">
     <div style="margin:50px">
+      <div style="margin-bottom: 20px">
+        <span id="statusKaspi"></span><br />
+        <span id="statusForte"></span><br />
+        <span id="statusHalyk"></span>
+      </div>
       <canvas id="kaspiChart" style="margin-bottom:30px;"></canvas>
       <canvas id="kaspiChartDiff" style="margin-bottom:30px;"></canvas>
       <canvas id="kaspiChartMedian" style="margin-bottom:30px;"></canvas>
@@ -35,11 +43,28 @@
       <canvas id="forteChartDiff" style="margin-bottom:30px;"></canvas>
       <canvas id="forteChartMedian" style="margin-bottom:30px;"></canvas>
       <canvas id="forteChartMedianDiff" style="margin-bottom:30px;"></canvas>
+      <canvas id="halykChart" style="margin-bottom:30px;"></canvas>
+      <canvas id="halykChartDiff" style="margin-bottom:30px;"></canvas>
+      <canvas id="halykChartMedian" style="margin-bottom:30px;"></canvas>
+      <canvas id="halykChartMedianDiff" style="margin-bottom:30px;"></canvas>
     </div>
     <script>
       document.addEventListener('DOMContentLoaded', function() {
         firebase.database().ref('/').get().then(snapshot => {
           const p2pData = snapshot.val()
+
+          const status = {
+            kaspiDiff: Object.values(p2pData.kaspi)[Object.values(p2pData.kaspi).length - 1]?.diff,
+            kaspiMedianDiff: Object.values(p2pData.kaspi)[Object.values(p2pData.kaspi).length - 1]?.medianDiff,
+            forteDiff: Object.values(p2pData.forte)[Object.values(p2pData.forte).length - 1]?.diff,
+            forteMedianDiff: Object.values(p2pData.forte)[Object.values(p2pData.forte).length - 1]?.medianDiff,
+            halykDiff: Object.values(p2pData.halyk)[Object.values(p2pData.halyk).length - 1]?.diff,
+            halykMedianDiff: Object.values(p2pData.halyk)[Object.values(p2pData.halyk).length - 1]?.medianDiff,
+          }
+
+          document.getElementById('statusKaspi').innerText = `Kaspi: ${status.kaspiDiff} / median: ${status.kaspiMedianDiff}`
+          document.getElementById('statusForte').innerText = `Forte: ${status.forteDiff} / median: ${status.forteMedianDiff}`
+          document.getElementById('statusHalyk').innerText = `Halyk: ${status.halykDiff} / median: ${status.halykMedianDiff}`
 
           const kaspiChart = new Chart(
             document.getElementById('kaspiChart'),
@@ -70,7 +95,10 @@
                   x: {
                     type: 'time',
                     time: {
-                      unit: 'minute'
+                      unit: 'hour',
+                      displayFormats: {
+                        hour: 'd E HH:mm'
+                      }
                     }
                   }
                 }
@@ -99,7 +127,10 @@
                   x: {
                     type: 'time',
                     time: {
-                      unit: 'minute'
+                      unit: 'hour',
+                      displayFormats: {
+                        hour: 'd E HH:mm'
+                      }
                     }
                   }
                 }
@@ -136,7 +167,10 @@
                   x: {
                     type: 'time',
                     time: {
-                      unit: 'minute'
+                      unit: 'hour',
+                      displayFormats: {
+                        hour: 'd E HH:mm'
+                      }
                     }
                   }
                 }
@@ -165,7 +199,10 @@
                   x: {
                     type: 'time',
                     time: {
-                      unit: 'minute'
+                      unit: 'hour',
+                      displayFormats: {
+                        hour: 'd E HH:mm'
+                      }
                     }
                   }
                 }
@@ -202,7 +239,10 @@
                   x: {
                     type: 'time',
                     time: {
-                      unit: 'minute'
+                      unit: 'hour',
+                      displayFormats: {
+                        hour: 'd E HH:mm'
+                      }
                     }
                   }
                 }
@@ -231,7 +271,10 @@
                   x: {
                     type: 'time',
                     time: {
-                      unit: 'minute'
+                      unit: 'hour',
+                      displayFormats: {
+                        hour: 'd E HH:mm'
+                      }
                     }
                   }
                 }
@@ -268,7 +311,10 @@
                   x: {
                     type: 'time',
                     time: {
-                      unit: 'minute'
+                      unit: 'hour',
+                      displayFormats: {
+                        hour: 'd E HH:mm'
+                      }
                     }
                   }
                 }
@@ -297,7 +343,154 @@
                   x: {
                     type: 'time',
                     time: {
-                      unit: 'minute'
+                      unit: 'hour',
+                      displayFormats: {
+                        hour: 'd E HH:mm'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          );
+
+          const halykChart = new Chart(
+            document.getElementById('halykChart'),
+            {
+              type: 'line',
+              data: {
+                labels: [],
+                datasets: [{
+                  data: Object.entries(p2pData.halyk).map(([timestamp, data]) => ({
+                    x: new Date(parseInt(timestamp)).toISOString(),
+                    y: data.buy
+                  })),
+                  label: "Halyk Buy",
+                  borderColor: "#3C896D",
+                  backgroundColor: "#3C896D",
+                }, {
+                  data: Object.entries(p2pData.halyk).map(([timestamp, data]) => ({
+                    x: new Date(parseInt(timestamp)).toISOString(),
+                    y: data.sell
+                  })),
+                  label: "Halyk Sell",
+                  borderColor: "#D90368",
+                  backgroundColor: "#D90368",
+                }]
+              },
+              options: {
+                scales: {
+                  x: {
+                    type: 'time',
+                    time: {
+                      unit: 'hour',
+                      displayFormats: {
+                        hour: 'd E HH:mm'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          );
+
+          const halykChartDiff = new Chart(
+            document.getElementById('halykChartDiff'),
+            {
+              type: 'line',
+              data: {
+                labels: [],
+                datasets: [{
+                  data: Object.entries(p2pData.halyk).map(([timestamp, data]) => ({
+                    x: new Date(parseInt(timestamp)).toISOString(),
+                    y: data.diff
+                  })),
+                  label: "Halyk Diff",
+                  borderColor: "#3C896D",
+                  backgroundColor: "#3C896D",
+                }]
+              },
+              options: {
+                scales: {
+                  x: {
+                    type: 'time',
+                    time: {
+                      unit: 'hour',
+                      displayFormats: {
+                        hour: 'd E HH:mm'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          );
+
+          const halykChartMedian = new Chart(
+            document.getElementById('halykChartMedian'),
+            {
+              type: 'line',
+              data: {
+                labels: [],
+                datasets: [{
+                  data: Object.entries(p2pData.halyk).map(([timestamp, data]) => ({
+                    x: new Date(parseInt(timestamp)).toISOString(),
+                    y: data.medianBuy
+                  })),
+                  label: "Halyk Median Buy",
+                  borderColor: "#3C896D",
+                  backgroundColor: "#3C896D",
+                }, {
+                  data: Object.entries(p2pData.halyk).map(([timestamp, data]) => ({
+                    x: new Date(parseInt(timestamp)).toISOString(),
+                    y: data.medianSell
+                  })),
+                  label: "Halyk Median Sell",
+                  borderColor: "#D90368",
+                  backgroundColor: "#D90368",
+                }]
+              },
+              options: {
+                scales: {
+                  x: {
+                    type: 'time',
+                    time: {
+                      unit: 'hour',
+                      displayFormats: {
+                        hour: 'd E HH:mm'
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          );
+
+          const halykChartMedianDiff = new Chart(
+            document.getElementById('halykChartMedianDiff'),
+            {
+              type: 'line',
+              data: {
+                labels: [],
+                datasets: [{
+                  data: Object.entries(p2pData.halyk).map(([timestamp, data]) => ({
+                    x: new Date(parseInt(timestamp)).toISOString(),
+                    y: data.medianDiff
+                  })),
+                  label: "Halyk Median Diff",
+                  borderColor: "#3C896D",
+                  backgroundColor: "#3C896D",
+                }]
+              },
+              options: {
+                scales: {
+                  x: {
+                    type: 'time',
+                    time: {
+                      unit: 'hour',
+                      displayFormats: {
+                        hour: 'd E HH:mm'
+                      }
                     }
                   }
                 }
